@@ -12,6 +12,10 @@ app.post('/transcribe', async (req, res) => {
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: 'مفتاح الـ API غير مُعرف في إعدادات السيرفر' });
+        }
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const prompt = "أنت مساعد أكاديمي وكاتب محاضر محترف. استمع إلى تسجيل هذه المحاضرة وقسمها إلى قسمين: 1. الملخص التنفيذي وأهم النقاط. 2. التفريغ النصي الحرفي الكامل. أخرج النتيجة في صيغة HTML منسق.";
@@ -30,7 +34,6 @@ app.post('/transcribe', async (req, res) => {
             }]
         };
 
-        // استخدام fetch المدمجة في النظام مباشرة بدون مكتبات خارجية
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -43,10 +46,10 @@ app.post('/transcribe', async (req, res) => {
             const rawText = data.candidates[0].content.parts[0].text;
             res.json({ html: rawText });
         } else {
-            res.status(500).json({ error: 'لم يرجع السيرفر أي نتائج نصية', details: data });
+            res.status(500).json({ error: 'خطأ من استجابة جوجل', details: data });
         }
-    } czyni (error) {
-        console.error(error);
+    } catch (error) {
+        console.error("Server Error:", error);
         res.status(500).json({ error: error.message });
     }
 });
