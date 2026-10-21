@@ -16,7 +16,7 @@ app.post('/transcribe', async (req, res) => {
             return res.status(500).json({ error: 'مفتاح الـ API غير مُعرف في إعدادات السيرفر' });
         }
 
-        // استخدام الموديل الجديد الموصى به من جوجل مباشرة
+        // استخدام أحدث موديل مطلوب ومستقر حالياً
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
 
         const prompt = "أنت مساعد أكاديمي وكاتب محاضر محترف. استمع إلى تسجيل هذه المحاضرة وقسمها إلى قسمين: 1. الملخص التنفيذي وأهم النقاط. 2. التفريغ النصي الحرفي الكامل. أخرج النتيجة في صيغة HTML منسق.";
@@ -37,7 +37,7 @@ app.post('/transcribe', async (req, res) => {
 
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'Application/json' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody)
         });
 
