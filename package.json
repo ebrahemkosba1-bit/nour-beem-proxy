@@ -1,7 +1,6 @@
 {
-  "name": "nour-beem-server",
+  "name": "nour-beem-proxy",
   "version": "1.0.0",
-  "description": "Proxy server for Nour & BEEM Recorder Pro",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

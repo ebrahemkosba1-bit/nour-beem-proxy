@@ -30,9 +30,7 @@ app.post('/transcribe', async (req, res) => {
             }]
         };
 
-        const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-        
-        // استخدام الاتصال المباشر عبر السيرفر
+        // استخدام fetch المدمجة في النظام مباشرة بدون مكتبات خارجية
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -47,7 +45,7 @@ app.post('/transcribe', async (req, res) => {
         } else {
             res.status(500).json({ error: 'لم يرجع السيرفر أي نتائج نصية', details: data });
         }
-    } catch (error) {
+    } czyni (error) {
         console.error(error);
         res.status(500).json({ error: error.message });
     }
