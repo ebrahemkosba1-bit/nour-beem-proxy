@@ -1,13 +1,8 @@
 const express = require('express');
-const { GoogleGenAI } = require('@google/genai');
-const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
-
 const app = express();
+
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/transcribe', async (req, res) => {
     try {
@@ -16,21 +11,42 @@ app.post('/transcribe', async (req, res) => {
             return res.status(400).json({ error: 'لم يتم إرسال ملف الصوت' });
         }
 
-        const audioPart = {
-            inlineData: {
-                data: audioData,
-                mimeType: mimeType || "audio/wav"
-            },
+        const apiKey = process.env.GEMINI_API_KEY;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+        const prompt = "أنت مساعد أكاديمي وكاتب محاضر محترف. استمع إلى تسجيل هذه المحاضرة وقسمها إلى قسمين: 1. الملخص التنفيذي وأهم النقاط. 2. التفريغ النصي الحرفي الكامل. أخرج النتيجة في صيغة HTML منسق.";
+
+        const requestBody = {
+            contents: [{
+                parts: [
+                    { text: prompt },
+                    {
+                        inline_data: {
+                            mime_type: mimeType || "audio/wav",
+                            data: audioData
+                        }
+                    }
+                ]
+            }]
         };
 
-        const prompt = "أنت مساعد أكاديمي محترف. استمع إلى تسجيل هذه المحاضرة وقسمها إلى قسمين: 1. الملخص التنفيذي وأهم النقاط. 2. التفريغ النصي الحرفي الكامل. أخرج النتيجة في صيغة HTML منسق.";
-
-        const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: [prompt, audioPart],
+        const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+        
+        // استخدام الاتصال المباشر عبر السيرفر
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
         });
 
-        res.json({ html: response.text });
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates.length > 0) {
+            const rawText = data.candidates[0].content.parts[0].text;
+            res.json({ html: rawText });
+        } else {
+            res.status(500).json({ error: 'لم يرجع السيرفر أي نتائج نصية', details: data });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: error.message });
